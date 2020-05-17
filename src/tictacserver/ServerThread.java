@@ -8,6 +8,8 @@ package tictacserver;
 import Database.DBConnector;
 import java.io.*;
 import java.net.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -39,19 +41,49 @@ public class ServerThread extends Thread {
             String accion = "";
             try {
                 accion = entrada.readUTF();
-                System.out.println("ReadUtf"+ accion);
                 switch (accion) {
                     case "login":
-                        String user = entrada.readUTF();
-                        System.out.println("ReadUtf"+ user);
-                        String pass = entrada.readUTF();
-                        System.out.println("ReadUtf"+ pass);
-                        salida.writeBoolean(connector.login(user, pass));
+                        attemptLogin();
+                    break;
+                    case "register":
+                        attemptRegister();
+                    break;
+                    case "game":
                     break;
                 }
             } catch (IOException ex) {
                 System.out.println("ex: " + ex);
             } 
+        }
+    }
+    
+    public void attemptLogin() {
+        try {
+            String user = entrada.readUTF();
+            String pass = entrada.readUTF();
+            salida.writeBoolean(connector.login(user, pass));
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void attemptRegister() {
+        try {
+            String user = entrada.readUTF();
+            String pass = entrada.readUTF();
+            salida.writeBoolean(connector.register(user, pass));
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void attemptRegisterGame() {
+        try {
+            String rival = entrada.readUTF();
+            boolean isWinner = entrada.readBoolean();
+            salida.writeBoolean(connector.registerGame(isWinner, rival));
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     

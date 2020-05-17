@@ -10,6 +10,8 @@ import com.mysql.jdbc.PreparedStatement;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -46,6 +48,7 @@ public class DBConnector {
 
             ResultSet rs = ps.executeQuery();
             if(rs.next()) {
+                System.out.println("Iniciando sesión");
                 this.username = username;
                 return true;
             } else {
@@ -56,6 +59,47 @@ public class DBConnector {
             System.err.println(e);
         }
         return false;
+    }
+    
+    public boolean register (String username, String password) {
+        System.out.println("Username: " + username);
+        System.out.println("Password: " + password);
+        this.username = "";
+        try {
+            PreparedStatement ps;
+            ps = (PreparedStatement) con.prepareStatement("INSERT INTO usuario (username,password) VALUES (?,?)");
+            ps.setString(1, username);
+            ps.setString(2, password);
+
+            ps.executeUpdate();
+            System.out.println("Creando usuario");
+            return true;
+        }
+        catch(Exception e){
+            System.err.println(e);
+            return false;
+        }
+    }
+    
+    public boolean registerGame(boolean isWinner, String rival){
+        try {
+            PreparedStatement ps;
+            ps = (PreparedStatement) con.prepareStatement("INSERT INTO Partida (ganador,perdedor) VALUES (?,?)");
+            if(isWinner) {
+                ps.setString(1, username);
+                ps.setString(2, rival);
+            } else {
+                ps.setString(1, rival);
+                ps.setString(2, username);
+            }
+            ps.executeUpdate();
+            System.out.println("Juego registrado");
+            return true;
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DBConnector.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
     }
     
 
