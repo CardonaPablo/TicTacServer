@@ -6,6 +6,7 @@
 package tictacserver;
 
 import java.net.*;
+import java.util.ArrayList;
 
 /**
  *
@@ -15,6 +16,7 @@ public class TicTacServer {
 
     ServerSocket server;
     final int puerto = 9000;
+    static ArrayList<ServerThread> conexiones = new ArrayList<>();
     
     /**
      * @param args the command line arguments
@@ -28,15 +30,15 @@ public class TicTacServer {
         //Iniciar el Server en el puerto correspondiente
         server= new ServerSocket(puerto);
         System.out.println("Iniciando servidor...");
-        int sessionId = 0;
         
         while(true){
             //Crear el socket y aceptar la conexión 
             Socket socket;
             socket = server.accept();
             System.out.println("Cliente conectado");
-            ((ServerThread) new ServerThread(socket, sessionId)).start();
-            sessionId++;
+            ServerThread a = new ServerThread(socket);
+            a.start();
+            conexiones.add(a);
          }
      } catch (Exception e){
          System.out.println("Error de conexion"+e.getMessage());

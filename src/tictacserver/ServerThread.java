@@ -20,12 +20,11 @@ public class ServerThread extends Thread {
     private Socket socket;
     private DataOutputStream salida;
     private DataInputStream entrada;
-    private int sessionId;
     final DBConnector connector = new DBConnector();
+    String username;
     
-    public ServerThread(Socket socket, int id) {
+    public ServerThread(Socket socket) {
         this.socket = socket;
-        this.sessionId = id;
         try {
             salida = new DataOutputStream(socket.getOutputStream());
             entrada = new DataInputStream(socket.getInputStream());
@@ -48,7 +47,11 @@ public class ServerThread extends Thread {
                     case "register":
                         attemptRegister();
                     break;
-                    case "game":
+                    case "sendInvitation":
+                        attemptSendInvitation();
+                    break;
+                    case "recieveInvitation":
+                        
                     break;
                 }
             } catch (IOException ex) {
@@ -61,7 +64,11 @@ public class ServerThread extends Thread {
         try {
             String user = entrada.readUTF();
             String pass = entrada.readUTF();
-            salida.writeBoolean(connector.login(user, pass));
+            boolean result = connector.login(user, pass);
+            salida.writeBoolean(result);
+            if(result)
+               this.username = user;
+            
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -87,5 +94,41 @@ public class ServerThread extends Thread {
         }
     }
     
+    public void attemptSendInvitation() {
+        try {
+            String destinatario = entrada.readUTF();
+            //Encontrar el thread que tiene de username
+            for (int i = 0; i < TicTacServer.conexiones.size(); i++) {
+                if (TicTacServer.conexiones.get(i).username.equals(destinatario)) {
+                    //Enviar la invitacion
+                    if(TicTacServer.conexiones.get(i).recieveInvitation(this.username)){
+                        //Iniciar el jeugo
+                        startGame();
+                    } else {
+                        //Rechazar la invitacion
+                    }
+                    break;
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
+    public boolean recieveInvitation(String username) {
+        try {
+            // Mandar a Menu la solicitud de juego
+            salida.writeUTF("recieveInvitation");
+            salida.writeUTF(username);
+            //Recibir la respuesta
+            return entrada.readBoolean();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+    
+    public void startGame() {
+        
+    }
 }
