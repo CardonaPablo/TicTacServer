@@ -35,8 +35,9 @@ public class ServerThread extends Thread {
     
     @Override
     public void run() {
+        boolean execute=true;
         System.out.println("Hilo iniciado");
-        while(true) {
+        while(execute) {
             String accion = "";
             try {
                 accion = entrada.readUTF();
@@ -54,8 +55,9 @@ public class ServerThread extends Thread {
                         
                     break;
                 }
-            } catch (IOException ex) {
-                System.out.println("ex: " + ex);
+            } catch (IOException ex) {     
+                execute=false;
+                System.out.println("Deteniendo hilo: " + ex);
             } 
         }
     }
