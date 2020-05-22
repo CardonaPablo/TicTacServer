@@ -37,8 +37,6 @@ public class DBConnector {
     }
     
     public boolean login (String username, String password) {
-        System.out.println("Username: " + username);
-        System.out.println("Password: " + password);
         this.username = "";
         try {
             PreparedStatement ps;
@@ -62,8 +60,6 @@ public class DBConnector {
     }
     
     public boolean register (String username, String password) {
-        System.out.println("Username: " + username);
-        System.out.println("Password: " + password);
         this.username = "";
         try {
             PreparedStatement ps;
@@ -72,7 +68,6 @@ public class DBConnector {
             ps.setString(2, password);
 
             ps.executeUpdate();
-            System.out.println("Creando usuario");
             return true;
         }
         catch(Exception e){
