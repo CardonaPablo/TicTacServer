@@ -38,14 +38,19 @@ public class ServerThread extends Thread {
     public void run() {
         boolean execute=true;
         System.out.println("Hilo iniciado");
+        
         while(execute) {
             String accion = "";
+            
             try {
                 accion = entrada.readUTF();
                 System.out.println(this.username + ": recibiendo accion: " + accion);
                 switch (accion) {
                     case "login":
                         attemptLogin();
+                    break;
+                    case "logout":
+                        logout();
                     break;
                     case "register":
                         attemptRegister();
@@ -64,14 +69,19 @@ public class ServerThread extends Thread {
                     break;
                     case "registerGame": 
                         attemptRegisterGame();
+                    case "users":
+                        getUsers();
                     break;
                 }
             } catch (IOException ex) {     
                 execute=false;
+                TicTacServer.conectedUsers.remove(username);
                 System.out.println("Deteniendo hilo: " + ex);
             } 
         }
     }
+    
+  
     
     public void attemptLogin() {
         try {
@@ -79,13 +89,43 @@ public class ServerThread extends Thread {
             String pass = entrada.readUTF();
             boolean result = connector.login(user, pass);
             salida.writeBoolean(result);
-            if(result)
+            if(result){
                this.username = user;
+               TicTacServer.conectedUsers.add(user);
+               
+               System.out.println("Usuarios conectados"+TicTacServer.conectedUsers.toString());
+                try {
+                    salida.writeUTF(TicTacServer.conectedUsers.toString());
+                } catch (IOException ex) {
+                    Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
+            }
             
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public void getUsers(){
+        try {
+            System.out.println("Usuarios conectados"+TicTacServer.conectedUsers.toString());
+            salida.writeUTF(TicTacServer.conectedUsers.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void logout(){
+        TicTacServer.conectedUsers.remove(username);
+       /* try {
+            salida.writeUTF(TicTacServer.conectedUsers.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }*/
+    }
+    
+   
     
     public void attemptRegister() {
         try {
