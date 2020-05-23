@@ -5,6 +5,8 @@
  */
 package tictacserver;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.*;
 import java.util.ArrayList;
 
@@ -17,7 +19,9 @@ public class TicTacServer {
     ServerSocket server;
     final int puerto = 9000;
     static ArrayList<ServerThread> conexiones = new ArrayList<>();
-    
+    static ArrayList<String> conectedUsers = new ArrayList<>();
+  
+    String newUser;
     /**
      * @param args the command line arguments
      */
@@ -36,6 +40,7 @@ public class TicTacServer {
             Socket socket;
             socket = server.accept();
             System.out.println("Cliente conectado");
+             
             ServerThread a = new ServerThread(socket);
             a.start();
             conexiones.add(a);
