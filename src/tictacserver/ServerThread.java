@@ -42,6 +42,7 @@ public class ServerThread extends Thread {
             String accion = "";
             try {
                 accion = entrada.readUTF();
+                System.out.println(this.username + ": recibiendo accion: " + accion);
                 switch (accion) {
                     case "login":
                         attemptLogin();
@@ -54,6 +55,15 @@ public class ServerThread extends Thread {
                     break;
                     case "move":
                         registerMove();
+                    break;
+                    case "Respuesta Invitacion": 
+                        if(entrada.readBoolean())
+                            invitationAccepted();
+                        else
+                            invitationDeclined();
+                    break;
+                    case "registerGame": 
+                        attemptRegisterGame();
                     break;
                 }
             } catch (IOException ex) {     
@@ -89,9 +99,13 @@ public class ServerThread extends Thread {
     
     public void attemptRegisterGame() {
         try {
-            String rival = entrada.readUTF();
-            boolean isWinner = entrada.readBoolean();
-            salida.writeBoolean(connector.registerGame(isWinner, rival));
+            System.out.println(this.username + ": Notificando a rival perdedor");
+            rivalActual.salida.writeUTF("lostGame");
+            System.out.println(this.username + ": Guardando partida en BD");
+            salida.writeBoolean(connector.registerGame(rivalActual.username));
+            rivalActual.rivalActual = null;
+            rivalActual = null;
+                
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -104,18 +118,11 @@ public class ServerThread extends Thread {
             for (int i = 0; i < TicTacServer.conexiones.size(); i++) {
                 if (TicTacServer.conexiones.get(i).username.equals(destinatario)) {
                     //Enviar la invitacion
-                    System.out.println(this.username + ": 2. Usuario encontrado");
-                    if(TicTacServer.conexiones.get(i).recieveInvitation(this.username)){
-                        //Iniciar el juego
-                        System.out.println(this.username + ": Respuesta recibida, aceptando invitación de juego");
-                        salida.writeBoolean(true);
-                        salida.writeUTF(username);
-                        createGame(TicTacServer.conexiones.get(i));
-                    } else {
-                        //Rechazar la invitacion
-                        System.out.println(this.username + ": respuesta recibida, invitacion declinada");
-                        salida.writeBoolean(false);
-                    }
+                    //Enviar a su flujo el receive Invitation
+                    ServerThread threadRival = TicTacServer.conexiones.get(i);
+                    threadRival.salida.writeUTF("recieveInvitation");
+                    threadRival.salida.writeUTF(this.username);
+                    threadRival.salida.writeUTF(threadRival.username);
                     break;
                 }
             }
@@ -124,34 +131,52 @@ public class ServerThread extends Thread {
         }
     }
     
-    public boolean recieveInvitation(String username) {
+    public void invitationAccepted() {
         try {
-            // Mandar a Menu la solicitud de juego
-            salida.writeUTF("recieveInvitation");
-            salida.writeUTF(username);
-            salida.writeUTF(this.username);
+            //Recibe el username que aceptó
+            String rivalUser = entrada.readUTF();
             
-            //Recibir la respuesta
-            System.out.println(this.username + ": Esperando respuesta del usuario");
-            boolean response = entrada.readBoolean();
-            System.out.println(this.username + ": After Recibido: " + response);
-            return response;
+            for (int i = 0; i < TicTacServer.conexiones.size(); i++) {
+                if (TicTacServer.conexiones.get(i).username.equals(rivalUser)) {
+                    TicTacServer.conexiones.get(i).rivalActual = this;
+                    //Enviar a el que solicitó la invitación la respuesta y el username del rival
+                    TicTacServer.conexiones.get(i).salida.writeUTF("onInvitationAccepted");
+                    TicTacServer.conexiones.get(i).salida.writeUTF(this.username);
+                    TicTacServer.conexiones.get(i).salida.writeUTF(rivalUser);
+                    
+                    //Crear el juego
+                    createGame(TicTacServer.conexiones.get(i));
+                    break;
+                }
+            }
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
+        }
+    }
+    
+    public void invitationDeclined(){
+                System.out.println(this.username + ": Respuesta recibida, declinando invitación de juego");
+        try {
+            //Recibe el username que aceptó
+            String rivalUser = entrada.readUTF();
+            for (int i = 0; i < TicTacServer.conexiones.size(); i++) {
+                if (TicTacServer.conexiones.get(i).username.equals(rivalUser)) {
+                    //Enviar a el que solicitó la invitación la respuesta
+                    TicTacServer.conexiones.get(i).salida.writeUTF("onInvitationDeclined");
+                    break;
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
     public void createGame(ServerThread rival) {
-        System.out.println(this.username + ": 9. Creando juego desde server");
         try {
             rivalActual = rival;
-            System.out.println(this.username + ":Rival obtenido");
             //Asignar los signos de cada uno
-            System.out.println(this.username + ":10. Enviando signos");
             rival.salida.writeUTF("O");
             salida.writeUTF("X");
-            System.out.println(this.username + ":12. Enviando ismyTurn");
             //Establecer quien va primero
             rival.salida.writeBoolean(false);
             salida.writeBoolean(true);
@@ -163,7 +188,11 @@ public class ServerThread extends Thread {
     
     public void registerMove() {
         try {
-            rivalActual.salida.writeUTF(entrada.readUTF());
+            System.out.println(this.username + ": Registering Move");
+            String slot = entrada.readUTF();
+            System.out.println(this.username + ": Slot recieved: " + slot);
+            rivalActual.salida.writeUTF("recieveMove");
+            rivalActual.salida.writeUTF(slot);
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }

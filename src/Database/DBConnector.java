@@ -76,17 +76,12 @@ public class DBConnector {
         }
     }
     
-    public boolean registerGame(boolean isWinner, String rival){
+    public boolean registerGame(String rival){
         try {
             PreparedStatement ps;
             ps = (PreparedStatement) con.prepareStatement("INSERT INTO Partida (ganador,perdedor) VALUES (?,?)");
-            if(isWinner) {
                 ps.setString(1, username);
                 ps.setString(2, rival);
-            } else {
-                ps.setString(1, rival);
-                ps.setString(2, username);
-            }
             ps.executeUpdate();
             System.out.println("Juego registrado");
             return true;
