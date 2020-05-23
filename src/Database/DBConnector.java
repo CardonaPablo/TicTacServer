@@ -10,6 +10,7 @@ import com.mysql.jdbc.PreparedStatement;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -104,6 +105,35 @@ public class DBConnector {
             System.out.println("Juego registrado");  
         } catch (SQLException ex) {
             Logger.getLogger(DBConnector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public String getPartidas(String username){
+        ArrayList<String> partidas = new ArrayList<>();
+        
+        try {
+            PreparedStatement ps;
+            ps = (PreparedStatement) con.prepareStatement("SELECT * FROM Partida WHERE ganador=? OR perdedor=?");
+            ps.setString(1, username);
+            ps.setString(2, username);
+            ResultSet rs = ps.executeQuery();
+            
+            while(rs.next()){
+                String resultado="";
+                if(rs.getBoolean("empate")){
+                    resultado="Hubo un empate entre " + rs.getString("ganador") + " y " + rs.getString("perdedor");
+                }
+                else{
+                    resultado=rs.getString("ganador")+" ganó ante "+rs.getString("perdedor");
+                }
+                partidas.add(resultado);
+            }
+
+            return partidas.toString();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DBConnector.class.getName()).log(Level.SEVERE, null, ex);
+            return partidas.toString();
         }
     }
     

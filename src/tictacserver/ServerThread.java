@@ -73,6 +73,9 @@ public class ServerThread extends Thread {
                     case "registerPcGame": 
                         attemptRegisterPcGame();
                     break;
+                    case "getPartidas": 
+                        attemptGetPartidas();
+                    break;
                     case "users":
                         getUsers();
                     break;
@@ -153,6 +156,18 @@ public class ServerThread extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void attemptGetPartidas(){
+        try {
+            String username=entrada.readUTF();
+            System.out.println("LAS PARTIDAS DEL PANA"+connector.getPartidas(username) );
+            salida.writeUTF("partidas");
+            salida.writeUTF(connector.getPartidas(username));
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
     
     public void attemptRegisterPcGame() {
