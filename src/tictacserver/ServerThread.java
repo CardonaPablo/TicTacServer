@@ -109,7 +109,7 @@ public class ServerThread extends Thread {
     
     public void getUsers(){
         try {
-            System.out.println("Usuarios conectados"+TicTacServer.conectedUsers.toString());
+            salida.writeUTF("usersList");
             salida.writeUTF(TicTacServer.conectedUsers.toString());
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
