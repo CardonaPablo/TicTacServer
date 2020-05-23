@@ -69,6 +69,10 @@ public class ServerThread extends Thread {
                     break;
                     case "registerGame": 
                         attemptRegisterGame();
+                    break;
+                    case "registerPcGame": 
+                        attemptRegisterPcGame();
+                    break;
                     case "users":
                         getUsers();
                     break;
@@ -145,6 +149,19 @@ public class ServerThread extends Thread {
             salida.writeBoolean(connector.registerGame(rivalActual.username));
             rivalActual.rivalActual = null;
             rivalActual = null;
+                
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void attemptRegisterPcGame() {
+        try {
+           
+           String ganador=entrada.readUTF();
+           String perdedor=entrada.readUTF();
+           Boolean empate=entrada.readBoolean();
+           connector.registerPcGame(ganador,perdedor,empate);
                 
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
