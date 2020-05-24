@@ -94,6 +94,23 @@ public class DBConnector {
         }
     }
     
+    public boolean registerTiedGame(String rival){
+        try {
+            PreparedStatement ps;
+            ps = (PreparedStatement) con.prepareStatement("INSERT INTO Partida (ganador,perdedor,empate) VALUES (?,?,?)");
+                ps.setString(1, username);
+                ps.setString(2, rival);
+                ps.setBoolean(3, true);//CAMBIAR ESO
+            ps.executeUpdate();
+            System.out.println("Juego registrado");
+            return true;
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DBConnector.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+    
     public void registerPcGame(String ganador, String perdedor, Boolean empate){
         try {
             PreparedStatement ps;

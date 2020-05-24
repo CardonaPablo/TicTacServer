@@ -70,6 +70,9 @@ public class ServerThread extends Thread {
                     case "registerGame": 
                         attemptRegisterGame();
                     break;
+                    case "registerTiedGame": 
+                        attemptRegisterTiedGame();
+                    break;
                     case "registerPcGame": 
                         attemptRegisterPcGame();
                     break;
@@ -80,6 +83,7 @@ public class ServerThread extends Thread {
                         getUsers();
                     break;
                 }
+                System.out.println("TERMINADA ACCION");
             } catch (IOException ex) {     
                 execute=false;
                 TicTacServer.conectedUsers.remove(username);
@@ -116,8 +120,10 @@ public class ServerThread extends Thread {
     
     public void getUsers(){
         try {
+            System.out.println("GettingUserList");
             salida.writeUTF("usersList");
             salida.writeUTF(TicTacServer.conectedUsers.toString());
+            System.out.println("UserList sent");
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -149,7 +155,7 @@ public class ServerThread extends Thread {
             System.out.println(this.username + ": Notificando a rival perdedor");
             rivalActual.salida.writeUTF("lostGame");
             System.out.println(this.username + ": Guardando partida en BD");
-            salida.writeBoolean(connector.registerGame(rivalActual.username));
+            connector.registerGame(rivalActual.username);
             rivalActual.rivalActual = null;
             rivalActual = null;
                 
@@ -157,6 +163,21 @@ public class ServerThread extends Thread {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    public void attemptRegisterTiedGame() {
+        try {
+            System.out.println(this.username + ": Notificando a rival perdedor");
+            rivalActual.salida.writeUTF("tiedGame");
+            System.out.println(this.username + ": Guardando partida en BD");
+            salida.writeBoolean(connector.registerTiedGame(rivalActual.username));
+            rivalActual.rivalActual = null;
+            rivalActual = null;
+                
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     
     public void attemptGetPartidas(){
         try {
@@ -184,14 +205,19 @@ public class ServerThread extends Thread {
     }
     
     public void attemptSendInvitation() {
+        System.out.println("In function");
         try {
             String destinatario = entrada.readUTF();
             //Encontrar el thread que tiene de username
+            System.out.println("Recibido destinatario");
             for (int i = 0; i < TicTacServer.conexiones.size(); i++) {
+                System.out.println("Buscando en conexiones: " + TicTacServer.conexiones.get(i).username);
                 if (TicTacServer.conexiones.get(i).username.equals(destinatario)) {
+                    System.out.println("Usuario encontrado: " +TicTacServer.conexiones.get(i).username);
                     //Enviar la invitacion
                     //Enviar a su flujo el receive Invitation
                     ServerThread threadRival = TicTacServer.conexiones.get(i);
+                    System.out.println("Enviando a conexion rival");
                     threadRival.salida.writeUTF("recieveInvitation");
                     threadRival.salida.writeUTF(this.username);
                     threadRival.salida.writeUTF(threadRival.username);
