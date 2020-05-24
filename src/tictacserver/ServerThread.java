@@ -107,6 +107,7 @@ public class ServerThread extends Thread {
                System.out.println("Usuarios conectados"+TicTacServer.conectedUsers.toString());
                 try {
                     salida.writeUTF(TicTacServer.conectedUsers.toString());
+                    System.out.println("Enviado la lista de usuarios");
                 } catch (IOException ex) {
                     Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -208,6 +209,10 @@ public class ServerThread extends Thread {
         System.out.println("In function");
         try {
             String destinatario = entrada.readUTF();
+            if(destinatario.startsWith(" ")){
+                destinatario = destinatario.substring(1);
+            }
+            System.out.println("DESTINATARIO FINAL: "+ destinatario);
             //Encontrar el thread que tiene de username
             System.out.println("Recibido destinatario");
             for (int i = 0; i < TicTacServer.conexiones.size(); i++) {

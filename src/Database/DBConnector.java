@@ -130,7 +130,7 @@ public class DBConnector {
         
         try {
             PreparedStatement ps;
-            ps = (PreparedStatement) con.prepareStatement("SELECT * FROM Partida WHERE ganador=? OR perdedor=?");
+            ps = (PreparedStatement) con.prepareStatement("SELECT * FROM Partida WHERE ganador=? OR perdedor=? ORDER BY id DESC");
             ps.setString(1, username);
             ps.setString(2, username);
             ResultSet rs = ps.executeQuery();
